@@ -8,11 +8,8 @@ def f(x, minibatch):
     # loss function sum_{w in training data} f(x,w)
     y=0; count=0
     for w in minibatch:
-        print(f"X:\t{x}")
         z=x-w-1
-        print(f"Z:\t{z}")
         y=y+np.minimum(27*(z[0]**2+z[1]**2), (z[0]+6)**2+(z[1]+10)**2) 
-        print(f"Y:\t{y}")  
         count=count+1
     return y/count
 
@@ -21,7 +18,7 @@ import sympy
 import matplotlib.pyplot as plt
 import numpy as np
 from torch import linspace
-from mpl_toolkits.mplot3d import Axes3D
+from mpl_toolkits.mplot3d import axes3d
 
 # x0, y0 = sympy.symbols("x0, y0", real=True)
 # func= 8*(x0-10)**4+9*(y0-0)**2
@@ -63,29 +60,137 @@ data = original_data # for shuffling
 num_training_dp = data.shape[0]
 print(num_training_dp)
 
-num_epochs = 10
-num_minibatches = 1
-batch_size = 10 # calculate batch size OR num minibatches
+num_epochs = 3
+num_minibatches = 5
+batch_size = int(num_training_dp/num_minibatches)
+# batch_size = 10 # calculate batch size OR num minibatches
 
-starting_x = np.array([0, 0])
+starting_x = np.array([3, 3])
 
-x = starting_x
+alpha = 1.1
+delta = 0.001
 
-for epoch in range(num_epochs):
-    # SHUFFLE
-    #for batch in np.arange(0, num_training_dp, batch_size):
-    # shuffled_idx = np.random.shuffle(np.arange(num_training_dp))
-    # minibatch_idxs = np.split(shuffled_idx, int(5), axis=0)
-    # minibatches = data[minibatch_idxs]
-    np.random.shuffle(data)
-    minibatches = np.split(data, num_minibatches)
-    print(len(minibatches))
-    # break
 
-    #print(minibatches.shape)
-    for minibatch in minibatches:
-        fxN = f(x, minibatch) 
-        print(fxN)
+
+list_x0s = []
+list_x1s = []
+list_fxs = []
+
+
+for i in range(5):
+    x0s = []
+    x1s = []
+    fxs = []
+    
+    x = starting_x
+    
+    for epoch in range(num_epochs):
+        # SHUFFLE
+        np.random.shuffle(data)
+        minibatches = np.array_split(data, num_minibatches)
+        print(minibatches)
+        # break
+
+        #print(minibatches.shape)
+        for minibatch in minibatches:
+            fx = f(x, minibatch)
+            x0s.append(x[0])
+            x1s.append(x[1])
+            fxs.append(fx)
+
+            fx0_delta = f([x[0]+delta, x[1]], minibatch)
+            dfdx0 = (fx0_delta-fx)/delta
+
+            fx1_delta = f([x[0], x[1]+delta], minibatch)
+            dfdx1 = (fx1_delta-fx)/delta
+
+            dfdx = np.array([dfdx0, dfdx1])
+            x = x - alpha*dfdx
+            
+    list_x0s.append(x0s)
+    list_x1s.append(x1s)
+    list_fxs.append(fxs)
+
+
+runs = range(len(list_x0s))
+
+for run in runs:
+    plt.plot(np.array(range(1, 1+len(list_x0s[run])))/num_minibatches, list_fxs[run], label=f"Run {run}")
+# plt.title(f"Change in $f(x)$ value with {num_minibatches} mini-batches")
+plt.title(f"Change in $f(x)$ value with alpha {alpha}")
+plt.xlabel("Epochs")
+plt.ylabel("$f(x)$")
+#plt.yscale('log')
+plt.legend()
+plt.show()
+
+for run in runs:
+    scatter_colors = plt.scatter(list_x0s[run], list_x1s[run], c=np.array(range(1, 1+len(list_x0s[run])))/num_minibatches)
+    plt.plot(list_x0s[run], list_x1s[run], alpha=0.5, label=f"Run {run}")
+
+plt.scatter(3,3, c='r', marker='x', label='Origin')
+plt.xlabel("$x_0$")
+plt.ylabel("$x_1$")
+plt.legend()
+plt.title(f"Change in $x_0$ and $x_1$ values with alpha {alpha}")
+
+plt.colorbar(scatter_colors, label="Epochs")
+plt.show()
+# x0_length = 200
+# x1_length = 100
+
+# x0_space = np.linspace(-10, 5, x0_length)
+# x1_space = np.linspace(-15, 5, x1_length)
+
+# X, Y = np.meshgrid(x0_space, x1_space)
+# Z = np.zeros((x1_length, x0_length))
+# dzdx0_finite = np.zeros((x1_length, x0_length))
+# dzdx1_finite = np.zeros((x1_length, x0_length))
+# delta = 0.001
+
+# for ind_x0 in range(x0_length):
+#     for ind_x1 in range(x1_length):
+#         x0 = x0_space[ind_x0]
+#         x1 = x1_space[ind_x1]
+#         Z[ind_x1, ind_x0] = f([x0, x1], data)
+#         dzdx0_finite[ind_x1, ind_x0] = (f([x0+delta, x1], data) - Z[ind_x1, ind_x0])/delta
+#         dzdx1_finite[ind_x1, ind_x0] = (f([x0, x1+delta], data) - Z[ind_x1, ind_x0])/delta
+
+# contour_colours = plt.contourf(X, Y, Z)
+# plt.colorbar(contour_colours, label="$f(x, N)$")
+# plt.xlabel("$x_{0}$")
+# plt.ylabel("$x_{1}$")
+# plt.title("Contour plot for function $f$ when $N=T$")
+# plt.show()
+
+# fig = plt.figure()
+# ax = fig.add_subplot(projection='3d')
+# ax.plot_wireframe(X, Y, Z)
+# ax.set_xlabel("$x_{0}$")
+# ax.set_ylabel("$x_{1}$")
+# ax.set_zlabel("$f(x,N)$")
+# ax.set_title("Wireframe plot for function $f$ when $N=T$")
+# plt.show()
+
+# contour_colours = plt.contourf(X, Y, dzdx0_finite)
+# #plt.contour(X, Y, Z)
+# plt.colorbar(contour_colours, label="${dz}/{dx_0}$")
+# plt.xlabel("$x_{0}$")
+# plt.ylabel("$x_{1}$")
+# plt.title("Contour plot for finite difference estimate of ${dz}/{dx_0}$ when $N=T$")
+# plt.show()
+
+# contour_colours = plt.contourf(X, Y, dzdx1_finite)
+# #plt.contour(X, Y, Z)
+# plt.colorbar(contour_colours, label="${dz}/{dx_1}$")
+# plt.xlabel("$x_{0}$")
+# plt.ylabel("$x_{1}$")
+# plt.title("Contour plot for finite difference estimate of ${dz}/{dx_1}$ when $N=T$")
+# plt.show()
+
+
+
+#         print(fxN)
     # xy_guesses.append(curr_xy)
     # z_values.append(curr_z)
     
