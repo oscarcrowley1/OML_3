@@ -8,8 +8,11 @@ def f(x, minibatch):
     # loss function sum_{w in training data} f(x,w)
     y=0; count=0
     for w in minibatch:
+        print(f"X:\t{x}")
         z=x-w-1
+        print(f"Z:\t{z}")
         y=y+np.minimum(27*(z[0]**2+z[1]**2), (z[0]+6)**2+(z[1]+10)**2) 
+        print(f"Y:\t{y}")  
         count=count+1
     return y/count
 
@@ -18,7 +21,7 @@ import sympy
 import matplotlib.pyplot as plt
 import numpy as np
 from torch import linspace
-from mpl_toolkits.mplot3d import axes3d
+from mpl_toolkits.mplot3d import Axes3D
 
 # x0, y0 = sympy.symbols("x0, y0", real=True)
 # func= 8*(x0-10)**4+9*(y0-0)**2
@@ -60,51 +63,23 @@ data = original_data # for shuffling
 num_training_dp = data.shape[0]
 print(num_training_dp)
 
-num_epochs = 1
+num_epochs = 10
 num_minibatches = 1
-# batch_size = 10 # calculate batch size OR num minibatches
+batch_size = 10 # calculate batch size OR num minibatches
 
 starting_x = np.array([0, 0])
 
 x = starting_x
 
-x0_length = 200
-x1_length = 200
-
-x0_space = np.linspace(-10, 5, x0_length)
-x1_space = np.linspace(-15, 5, x1_length)
-
-X, Y = np.meshgrid(x0_space, x1_space)
-# Z = f([X, Y], data)
-Z = np.zeros((x0_length, x1_length))
-
-for x0 in range(x0_length):
-    for x1 in range(x1_length):
-        Z[x0, x1] = f([x0_space[x0], x1_space[x1]], data)
-
-contour_colours = plt.contourf(X, Y, Z)
-#plt.contour(X, Y, Z)
-plt.colorbar(contour_colours, label="$f(x, N)$")
-plt.xlabel("$x_{0}$")
-plt.ylabel("$x_{1}$")
-plt.title("Contour plot for function $f$ when $N=T$")
-plt.show()
-
-fig = plt.figure()
-ax = fig.add_subplot(projection='3d')
-ax.plot_wireframe(X, Y, Z)
-ax.set_xlabel("$x_{0}$")
-ax.set_ylabel("$x_{1}$")
-ax.set_zlabel("$f(x,N)$")
-ax.set_title("Wireframe plot for function $f$ when $N=T$")
-plt.show()
-
-
 for epoch in range(num_epochs):
     # SHUFFLE
+    #for batch in np.arange(0, num_training_dp, batch_size):
+    # shuffled_idx = np.random.shuffle(np.arange(num_training_dp))
+    # minibatch_idxs = np.split(shuffled_idx, int(5), axis=0)
+    # minibatches = data[minibatch_idxs]
     np.random.shuffle(data)
     minibatches = np.split(data, num_minibatches)
-    print(minibatches)
+    print(len(minibatches))
     # break
 
     #print(minibatches.shape)
