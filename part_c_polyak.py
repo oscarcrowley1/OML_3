@@ -41,19 +41,6 @@ from mpl_toolkits.mplot3d import axes3d
 # def calc_polyak(fxy, fstar, slope):
 #     return (fxy-fstar)/(slope.dot(np.transpose(slope)) + epsilon)
 
-# x_start_range = [0.01, 0.1, 1, 10, 100]
-
-# x_start = 1
-# y_start = 1
-
-# alpha = 0.1
-
-# curr_xy = [x_start, y_start]
-
-# curr_z = f(curr_xy)
-
-# xy_guesses = []
-# z_values = []
 original_data = generate_trainingdata()
 print(original_data)
 data = original_data # for shuffling
@@ -67,8 +54,10 @@ batch_size = int(num_training_dp/num_minibatches)
 
 starting_x = np.array([3, 3])
 
-alpha = 0.1
+# alpha = 0.01
 delta = 0.001
+fstar = 0
+epsilon = 0.001
 
 
 
@@ -105,6 +94,9 @@ for i in range(5):
             dfdx1 = (fx1_delta-fx)/delta
 
             dfdx = np.array([dfdx0, dfdx1])
+            
+            alpha = (fx-fstar)/(dfdx.dot(np.transpose(dfdx)) + epsilon)
+            
             x = x - alpha*dfdx
             
     list_x0s.append(x0s)
@@ -117,7 +109,7 @@ runs = range(len(list_x0s))
 for run in runs:
     plt.plot(np.array(range(1, 1+len(list_x0s[run])))/num_minibatches, list_fxs[run], label=f"Run {run}")
 # plt.title(f"Change in $f(x)$ value with {num_minibatches} mini-batches")
-plt.title(f"Change in $f(x)$ value with no minibatches")
+plt.title(f"Change in $f(x)$ value using Polyak")
 plt.xlabel("Epochs")
 plt.ylabel("$f(x)$")
 #plt.yscale('log')
@@ -132,78 +124,7 @@ plt.scatter(3,3, c='r', marker='x', label='Origin')
 plt.xlabel("$x_0$")
 plt.ylabel("$x_1$")
 plt.legend()
-plt.title(f"Change in $x_0$ and $x_1$ values with no minibatches")
+plt.title(f"Change in $x_0$ and $x_1$ values using Polyak")
 
 plt.colorbar(scatter_colors, label="Epochs")
 plt.show()
-# x0_length = 200
-# x1_length = 100
-
-# x0_space = np.linspace(-10, 5, x0_length)
-# x1_space = np.linspace(-15, 5, x1_length)
-
-# X, Y = np.meshgrid(x0_space, x1_space)
-# Z = np.zeros((x1_length, x0_length))
-# dzdx0_finite = np.zeros((x1_length, x0_length))
-# dzdx1_finite = np.zeros((x1_length, x0_length))
-# delta = 0.001
-
-# for ind_x0 in range(x0_length):
-#     for ind_x1 in range(x1_length):
-#         x0 = x0_space[ind_x0]
-#         x1 = x1_space[ind_x1]
-#         Z[ind_x1, ind_x0] = f([x0, x1], data)
-#         dzdx0_finite[ind_x1, ind_x0] = (f([x0+delta, x1], data) - Z[ind_x1, ind_x0])/delta
-#         dzdx1_finite[ind_x1, ind_x0] = (f([x0, x1+delta], data) - Z[ind_x1, ind_x0])/delta
-
-# contour_colours = plt.contourf(X, Y, Z)
-# plt.colorbar(contour_colours, label="$f(x, N)$")
-# plt.xlabel("$x_{0}$")
-# plt.ylabel("$x_{1}$")
-# plt.title("Contour plot for function $f$ when $N=T$")
-# plt.show()
-
-# fig = plt.figure()
-# ax = fig.add_subplot(projection='3d')
-# ax.plot_wireframe(X, Y, Z)
-# ax.set_xlabel("$x_{0}$")
-# ax.set_ylabel("$x_{1}$")
-# ax.set_zlabel("$f(x,N)$")
-# ax.set_title("Wireframe plot for function $f$ when $N=T$")
-# plt.show()
-
-# contour_colours = plt.contourf(X, Y, dzdx0_finite)
-# #plt.contour(X, Y, Z)
-# plt.colorbar(contour_colours, label="${dz}/{dx_0}$")
-# plt.xlabel("$x_{0}$")
-# plt.ylabel("$x_{1}$")
-# plt.title("Contour plot for finite difference estimate of ${dz}/{dx_0}$ when $N=T$")
-# plt.show()
-
-# contour_colours = plt.contourf(X, Y, dzdx1_finite)
-# #plt.contour(X, Y, Z)
-# plt.colorbar(contour_colours, label="${dz}/{dx_1}$")
-# plt.xlabel("$x_{0}$")
-# plt.ylabel("$x_{1}$")
-# plt.title("Contour plot for finite difference estimate of ${dz}/{dx_1}$ when $N=T$")
-# plt.show()
-
-
-
-#         print(fxN)
-    # xy_guesses.append(curr_xy)
-    # z_values.append(curr_z)
-    
-        
-    # slope = np.array([dfdx(curr_xy), dfdy(curr_xy)])   
-    # alpha = 1 # calc_polyak(f(curr_xy), fstar, slope)
-    # step = slope*alpha
-    
-    # curr_xy = curr_xy - step
-    # curr_z = f(curr_xy)
-
-# xy_guesses = np.array(xy_guesses)
-# z_values = np.array(z_values)
-      
-# plt.scatter(xy_guesses[:, 0], xy_guesses[:, 1], c=range(num_iterations))
-# plt.show()

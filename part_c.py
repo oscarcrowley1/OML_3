@@ -37,10 +37,15 @@ from mpl_toolkits.mplot3d import axes3d
 
 # def dfdy(xy):
 #     return y_deriv.subs([(x0, xy[0]), (y0, xy[1])])
+    
+def calc_polyak(fxy, fstar, slope):
+    return (fxy-fstar)/(slope.dot(np.transpose(slope)) + polyak_epsilon)
 
-# def calc_polyak(fxy, fstar, slope):
-#     return (fxy-fstar)/(slope.dot(np.transpose(slope)) + epsilon)
+def calc_constant():
+    return constant_alpha
 
+def calc_rmsprop(fxy, slope):
+    rms_sum = rms_beta*rms_sum + (1 - rms_beta)*(slope.dot(np.transpose(slope)))
 # x_start_range = [0.01, 0.1, 1, 10, 100]
 
 # x_start = 1
@@ -54,21 +59,36 @@ from mpl_toolkits.mplot3d import axes3d
 
 # xy_guesses = []
 # z_values = []
+
+step_calc = None
+
+
+
+
 original_data = generate_trainingdata()
 print(original_data)
 data = original_data # for shuffling
 num_training_dp = data.shape[0]
 print(num_training_dp)
 
-num_epochs = 3
-num_minibatches = 5
+num_epochs = 10
+num_minibatches = 1
 batch_size = int(num_training_dp/num_minibatches)
 # batch_size = 10 # calculate batch size OR num minibatches
 
 starting_x = np.array([3, 3])
 
-alpha = 0.1
-delta = 0.001
+
+finite_delta = 0.001
+
+constant_alpha = 0.01
+
+polyak_epsilon = 0.001
+polyak_fstar = 0
+
+rms_sum = 0
+rms_beta = 0.9
+rms_t = 1
 
 
 
@@ -77,18 +97,18 @@ list_x1s = []
 list_fxs = []
 
 
-for i in range(5):
+for i in range(1):
     x0s = []
     x1s = []
     fxs = []
     
     x = starting_x
-    
+        
     for epoch in range(num_epochs):
         # SHUFFLE
         np.random.shuffle(data)
         minibatches = np.array_split(data, num_minibatches)
-        print(minibatches)
+        # print(minibatches)
         # break
 
         #print(minibatches.shape)
@@ -97,14 +117,21 @@ for i in range(5):
             x0s.append(x[0])
             x1s.append(x[1])
             fxs.append(fx)
+            
 
-            fx0_delta = f([x[0]+delta, x[1]], minibatch)
-            dfdx0 = (fx0_delta-fx)/delta
+            fx0_delta = f([x[0]+finite_delta, x[1]], minibatch)
+            dfdx0 = (fx0_delta-fx)/finite_delta
 
-            fx1_delta = f([x[0], x[1]+delta], minibatch)
-            dfdx1 = (fx1_delta-fx)/delta
+            fx1_delta = f([x[0], x[1]+finite_delta], minibatch)
+            dfdx1 = (fx1_delta-fx)/finite_delta
 
             dfdx = np.array([dfdx0, dfdx1])
+            
+            # alpha = calc_constant()
+            # alpha = calc_polyak(fx, polyak_fstar, dfdx)
+            alpha = calc_rmsprop(fx, polyak_fstar, dfdx)
+            # alpha = calc_polyak(fx, polyak_fstar, dfdx)
+            print(f"ALPHA:\t{alpha}")
             x = x - alpha*dfdx
             
     list_x0s.append(x0s)
