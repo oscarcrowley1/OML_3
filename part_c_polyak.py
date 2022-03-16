@@ -48,7 +48,7 @@ num_training_dp = data.shape[0]
 print(num_training_dp)
 
 num_epochs = 3
-num_minibatches = 5
+num_minibatches = 2
 batch_size = int(num_training_dp/num_minibatches)
 # batch_size = 10 # calculate batch size OR num minibatches
 

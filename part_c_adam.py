@@ -60,7 +60,7 @@ delta = 0.001
 fstar = 0
 epsilon = 0.001
 
-alpha = 1
+alpha = 0.1
 zeta0 = 0
 
 
@@ -110,10 +110,18 @@ for i in range(5):
             current_m = beta1*current_m + (1-beta1)*(dfdx)
             current_v = beta2*current_v + (1-beta2)*(np.square(dfdx))
             
+            print(f"M:\t{current_m.shape}")
+            print(f"V:\t{current_v.shape}")
+            
             m_hat = current_m/(1-beta1**t)
             v_hat = current_v/(1-beta2**t)
+            
+            print(f"M_HAT:\t{m_hat.shape}")
+            print(f"V_HAT:\t{v_hat.shape}")
+
                     
-            x = x - alpha*(m_hat/((np.power(v_hat, 0.5))+epsilon))
+            x = x - alpha*(m_hat/(np.sqrt(v_hat)+epsilon))
+            # x = x - alpha*(m_hat/((np.power(v_hat, 0.5))+epsilon))
             
             t = t+1
             
